@@ -13,6 +13,9 @@ class SessionsController < InertiaController
       @session = user.sessions.create!
       cookies.signed.permanent[:session_token] = {value: @session.id, httponly: true}
 
+      # Return session token for native clients (they can't use cookies)
+      response.set_header("X-Session-Token", @session.id) if native_request?
+
       redirect_to dashboard_path, notice: "Signed in successfully"
     else
       redirect_to sign_in_path, alert: "That email or password is incorrect"

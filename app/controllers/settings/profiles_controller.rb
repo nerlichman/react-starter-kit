@@ -4,6 +4,7 @@ class Settings::ProfilesController < InertiaController
   before_action :set_user
 
   def show
+    @algo = "bcrypt"
   end
 
   def update
