@@ -13,11 +13,21 @@ class SessionsController < InertiaController
       @session = user.sessions.create!
       cookies.signed.permanent[:session_token] = {value: @session.id, httponly: true}
 
-      # Return session token for native clients (they can't use cookies)
-      response.set_header("X-Session-Token", @session.id) if native_request?
+      if native_request?
+        # Native clients can't reliably capture headers from 302 responses
+        # (React Native fetch with redirect:'manual' may return opaque redirects).
+        # Return a 200 JSON with the token and redirect destination instead.
+        render json: {session_token: @session.id, location: dashboard_path}
+        return
+      end
 
       redirect_to dashboard_path, notice: "Signed in successfully"
     else
+      if native_request?
+        render json: {errors: {email: "That email or password is incorrect"}}, status: :unprocessable_entity
+        return
+      end
+
       redirect_to sign_in_path, alert: "That email or password is incorrect"
     end
   end

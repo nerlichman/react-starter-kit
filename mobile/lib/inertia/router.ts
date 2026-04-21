@@ -207,6 +207,14 @@ class InertiaRouter {
       }
     }
 
+    // Handle 401 unauthorized — token expired or invalidated
+    if (response.status === 401) {
+      console.log("[Inertia] 401 Unauthorized — clearing token, redirecting to login")
+      await clearToken()
+      this.authToken = null
+      return this.visit("/sign_in", { method: "GET" })
+    }
+
     // Handle 409 version conflict — clear version and retry
     if (response.status === 409) {
       const location = response.headers.get("X-Inertia-Location")
@@ -225,13 +233,43 @@ class InertiaRouter {
       await setToken(sessionToken)
     }
 
-    // Handle non-Inertia responses (e.g., 500 errors)
+    // Handle non-Inertia responses
     const isInertia = response.headers.get("X-Inertia") === "true"
     if (!isInertia) {
-      const body = await response.text()
+      // Read body once — response.json()/text() consume the stream and can't be called twice.
+      const bodyText = await response.text().catch(() => null)
+      console.log(`[Inertia] Non-Inertia body (${response.status}):`, bodyText?.substring(0, 300))
+
+      let body: any = null
+      if (bodyText) {
+        try {
+          body = JSON.parse(bodyText)
+        } catch {
+          // Not JSON
+        }
+      }
+
+      // Native auth success — backend returns { session_token, location } as 200 JSON
+      // instead of a 302 redirect (which React Native can't reliably intercept).
+      if (response.ok && body?.session_token && body?.location) {
+        console.log("[Inertia] Native auth success — storing token, visiting:", body.location)
+        this.authToken = String(body.session_token)
+        await setToken(String(body.session_token))
+        return this.visit(body.location, { method: "GET" })
+      }
+
+      // Native validation errors — backend returns { errors: {...} } as 422 JSON
+      if (response.status === 422 && body?.errors) {
+        console.log("[Inertia] Native validation errors:", Object.keys(body.errors))
+        options.onError?.(body.errors)
+        events.emit("error", body.errors)
+        return
+      }
+
+      // Unhandled non-Inertia response
       console.error(
-        `[Inertia] Non-Inertia response (${response.status}):`,
-        body.substring(0, 200),
+        `[Inertia] Unhandled non-Inertia response (${response.status}):`,
+        bodyText?.substring(0, 200) ?? "(empty)",
       )
       return
     }
@@ -309,13 +347,22 @@ class InertiaRouter {
     })
   }
 
-  /** Clear auth and navigate to a fresh state */
-  async logout(url: string = "/") {
+  /** Destroy the server session, clear local auth, and navigate to login */
+  async logout(sessionId?: string) {
+    // Destroy the session server-side if we have an ID
+    if (sessionId) {
+      try {
+        await this.delete(`/sessions/${sessionId}`)
+      } catch {
+        // Session may already be destroyed — continue with local cleanup
+      }
+    }
+
     await clearToken()
     this.authToken = null
     this.currentPage = null
     this.version = null
-    return this.visit(url)
+    return this.visit("/sign_in")
   }
 }
 

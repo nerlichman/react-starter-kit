@@ -5,7 +5,7 @@
  */
 
 import React from "react"
-import { View, Text, ScrollView, StyleSheet, RefreshControl } from "react-native"
+import { View, Text, ScrollView, Pressable, StyleSheet, RefreshControl } from "react-native"
 
 import { usePage, router, Link, type PageComponent } from "../../lib/inertia"
 import AppLayout from "../../layouts/AppLayout"
@@ -60,6 +60,13 @@ const DashboardScreen: PageComponent = () => {
       <Link href="/settings/profile" style={styles.link}>
         <Text style={styles.linkText}>Go to Settings →</Text>
       </Link>
+
+      <Pressable
+        style={styles.signOut}
+        onPress={() => router.logout(props.auth.session.id)}
+      >
+        <Text style={styles.signOutText}>Sign out</Text>
+      </Pressable>
     </ScrollView>
   )
 }
@@ -109,6 +116,16 @@ const styles = StyleSheet.create({
   linkText: {
     fontSize: 16,
     color: "#2563eb",
+    fontWeight: "500",
+  },
+  signOut: {
+    paddingVertical: 12,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  signOutText: {
+    fontSize: 16,
+    color: "#ef4444",
     fontWeight: "500",
   },
 })
