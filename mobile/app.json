@@ -21,7 +21,9 @@
       "package": "com.example.inertiareactnative"
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      "react-native-bottom-tabs",
+      "./plugins/withModularHeaders"
     ]
   }
 }

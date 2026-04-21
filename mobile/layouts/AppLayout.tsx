@@ -1,27 +1,42 @@
 /**
  * App layout — main layout for authenticated screens.
  *
- * Includes a native tab bar at the bottom.
+ * Uses react-native-bottom-tabs for a real native UITabBarController (iOS)
+ * and BottomNavigationView (Android). On iOS 26+, liquid glass is automatic.
+ *
  * The tab bar is just UI — tapping a tab calls router.visit().
  * Same pattern as the web sidebar layout.
  */
 
-import React, { type ReactNode, useCallback } from "react"
-import { View, StyleSheet, SafeAreaView, Pressable, Text } from "react-native"
+import React, { type ReactNode, useState, useEffect } from "react"
+import { View, SafeAreaView, StyleSheet } from "react-native"
+import TabView, { type AppleIcon } from "react-native-bottom-tabs"
 
 import { router, usePage } from "../lib/inertia"
 
-interface TabItemConfig {
-  title: string
-  href: string
-  /** SF Symbol name (iOS) — for Phase 3 we'll use real native tab bar */
-  icon: string
-}
+const sfIcon = (name: string): AppleIcon => ({
+  sfSymbol: name as AppleIcon["sfSymbol"],
+})
 
-const tabs: TabItemConfig[] = [
-  { title: "Dashboard", href: "/dashboard", icon: "house" },
-  { title: "Settings", href: "/settings/profile", icon: "gear" },
+const routes = [
+  {
+    key: "dashboard",
+    title: "Dashboard",
+    focusedIcon: sfIcon("house.fill"),
+    unfocusedIcon: sfIcon("house"),
+  },
+  {
+    key: "settings",
+    title: "Settings",
+    focusedIcon: sfIcon("gearshape.fill"),
+    unfocusedIcon: sfIcon("gearshape"),
+  },
 ]
+
+const tabHrefs: Record<string, string> = {
+  dashboard: "/dashboard",
+  settings: "/settings/profile",
+}
 
 interface AppLayoutProps {
   children: ReactNode
@@ -30,90 +45,38 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   const { url } = usePage()
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>{children}</View>
-      <TabBar currentUrl={url} />
-    </SafeAreaView>
-  )
-}
+  // Derive active tab from the current Inertia URL
+  const urlIndex = routes.findIndex((r) => url.startsWith(tabHrefs[r.key]!))
+  const [index, setIndex] = useState(urlIndex >= 0 ? urlIndex : 0)
 
-/**
- * TabBar — placeholder using React Native views for Phase 1.
- *
- * In Phase 3, this will be replaced with a real native UITabBar
- * (via react-native-bottom-tabs or @expo/ui) that renders
- * liquid glass on iOS 26 automatically.
- *
- * The API won't change — it's still just UI that calls router.visit().
- */
-function TabBar({ currentUrl }: { currentUrl: string }) {
-  return (
-    <View style={styles.tabBar}>
-      {tabs.map((tab) => (
-        <TabBarItem
-          key={tab.href}
-          tab={tab}
-          isActive={currentUrl.startsWith(tab.href)}
-        />
-      ))}
-    </View>
-  )
-}
-
-function TabBarItem({
-  tab,
-  isActive,
-}: {
-  tab: TabItemConfig
-  isActive: boolean
-}) {
-  const handlePress = useCallback(() => {
-    router.visit(tab.href)
-  }, [tab.href])
+  // Sync tab selection when URL changes (after Inertia navigation completes)
+  useEffect(() => {
+    if (urlIndex >= 0) setIndex(urlIndex)
+  }, [urlIndex])
 
   return (
-    <Pressable onPress={handlePress} style={styles.tabItem}>
-      <Text
-        style={[
-          styles.tabLabel,
-          isActive ? styles.tabLabelActive : styles.tabLabelInactive,
-        ]}
-      >
-        {tab.title}
-      </Text>
-    </Pressable>
+    <TabView
+      navigationState={{ index, routes }}
+      onIndexChange={(newIndex) => {
+        setIndex(newIndex) // Immediate visual feedback
+        const href = tabHrefs[routes[newIndex]!.key]
+        if (href) router.visit(href)
+      }}
+      renderScene={({ route }) => {
+        const isActive = route.key === routes[index]?.key
+        return (
+          <SafeAreaView style={styles.scene}>
+            {isActive ? children : <View style={styles.scene} />}
+          </SafeAreaView>
+        )
+      }}
+    />
   )
 }
 
 const styles = StyleSheet.create({
-  container: {
+  scene: {
     flex: 1,
     backgroundColor: "#fff",
-  },
-  content: {
-    flex: 1,
-  },
-  tabBar: {
-    flexDirection: "row",
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#e5e5e5",
-    backgroundColor: "#fafafa",
-    paddingBottom: 4,
-  },
-  tabItem: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: 10,
-  },
-  tabLabel: {
-    fontSize: 12,
-    fontWeight: "500",
-  },
-  tabLabelActive: {
-    color: "#000",
-  },
-  tabLabelInactive: {
-    color: "#999",
   },
 })
