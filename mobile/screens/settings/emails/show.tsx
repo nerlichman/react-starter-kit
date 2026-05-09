@@ -16,15 +16,14 @@ import {
 import {
   usePage,
   useForm,
-  useBack,
   type PageComponent,
 } from "../../../lib/inertia"
 import AppLayout from "../../../layouts/AppLayout"
+import ScreenHeader from "../../../components/ScreenHeader"
 import type { SettingsEmailProps } from "../../../shared/types"
 
 const SettingsEmailScreen: PageComponent = () => {
   const { props } = usePage<SettingsEmailProps>()
-  const { canGoBack, back } = useBack()
 
   const form = useForm({
     email: props.auth.user.email,
@@ -39,13 +38,9 @@ const SettingsEmailScreen: PageComponent = () => {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {canGoBack ? (
-        <Pressable onPress={back} style={styles.backButton}>
-          <Text style={styles.backText}>‹ Back</Text>
-        </Pressable>
-      ) : null}
-
+    <>
+      <ScreenHeader title="Email" />
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Email</Text>
       <Text style={styles.subtitle}>
         Update the email address associated with your account
@@ -105,7 +100,8 @@ const SettingsEmailScreen: PageComponent = () => {
           <Text style={styles.saveButtonText}>Update email</Text>
         )}
       </Pressable>
-    </ScrollView>
+      </ScrollView>
+    </>
   )
 }
 
@@ -121,15 +117,6 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     gap: 16,
-  },
-  backButton: {
-    alignSelf: "flex-start",
-    paddingVertical: 4,
-  },
-  backText: {
-    fontSize: 17,
-    color: "#2563eb",
-    fontWeight: "500",
   },
   title: {
     fontSize: 28,

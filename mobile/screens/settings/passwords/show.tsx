@@ -13,12 +13,11 @@ import {
   ActivityIndicator,
 } from "react-native"
 
-import { useForm, useBack, type PageComponent } from "../../../lib/inertia"
+import { useForm, type PageComponent } from "../../../lib/inertia"
 import AppLayout from "../../../layouts/AppLayout"
+import ScreenHeader from "../../../components/ScreenHeader"
 
 const SettingsPasswordScreen: PageComponent = () => {
-  const { canGoBack, back } = useBack()
-
   const form = useForm({
     password_challenge: "",
     password: "",
@@ -32,13 +31,9 @@ const SettingsPasswordScreen: PageComponent = () => {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {canGoBack ? (
-        <Pressable onPress={back} style={styles.backButton}>
-          <Text style={styles.backText}>‹ Back</Text>
-        </Pressable>
-      ) : null}
-
+    <>
+      <ScreenHeader title="Password" />
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Password</Text>
       <Text style={styles.subtitle}>
         Use a long password to keep your account secure
@@ -106,7 +101,8 @@ const SettingsPasswordScreen: PageComponent = () => {
           <Text style={styles.saveButtonText}>Update password</Text>
         )}
       </Pressable>
-    </ScrollView>
+      </ScrollView>
+    </>
   )
 }
 
@@ -122,15 +118,6 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     gap: 16,
-  },
-  backButton: {
-    alignSelf: "flex-start",
-    paddingVertical: 4,
-  },
-  backText: {
-    fontSize: 17,
-    color: "#2563eb",
-    fontWeight: "500",
   },
   title: {
     fontSize: 28,
