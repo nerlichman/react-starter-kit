@@ -60,7 +60,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
       onIndexChange={(newIndex) => {
         setIndex(newIndex) // Immediate visual feedback
         const href = tabHrefs[routes[newIndex]!.key]
-        if (href) router.visit(href)
+        // Tab switches replace the current page rather than push, so tabs
+        // don't accumulate back-history (standard mobile tab behavior).
+        if (href) router.replace(href)
       }}
       renderScene={({ route }) => {
         const isActive = route.key === routes[index]?.key
