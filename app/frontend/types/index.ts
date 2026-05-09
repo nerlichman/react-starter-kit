@@ -1,9 +1,6 @@
 import type { LucideIcon } from "lucide-react"
 
-export interface Auth {
-  user: User
-  session: Pick<Session, "id">
-}
+export * from "@/types/serializers"
 
 export interface BreadcrumbItem {
   title: string
