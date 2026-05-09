@@ -14,15 +14,12 @@ import * as Burnt from "burnt"
 import { events } from "./events"
 import type { InertiaPage } from "./types"
 
-interface FlashShape {
-  notice?: string
-  alert?: string
-}
-
 export function FlashToaster() {
   useEffect(() => {
     return events.on<InertiaPage>("navigate", (page) => {
-      const flash = (page?.props as { flash?: FlashShape } | undefined)?.flash
+      // Inertia Rails places `flash` at the top level of the page object,
+      // alongside component/props/url (not nested inside props).
+      const flash = page?.flash
       if (!flash) return
 
       if (flash.notice) {

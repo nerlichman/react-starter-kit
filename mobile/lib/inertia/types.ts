@@ -16,6 +16,11 @@ export interface InertiaPage<TProps extends PageProps = PageProps> {
   }
   url: string
   version: string | null
+  /**
+   * Inertia Rails places flash at the top level of the page object (not under
+   * props). Configured via `config.flash_keys` (defaults to [:notice, :alert]).
+   */
+  flash?: FlashData
   clearHistory?: boolean
   encryptHistory?: boolean
 }

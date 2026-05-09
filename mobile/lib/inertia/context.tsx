@@ -52,14 +52,13 @@ export function usePage<TProps extends PageProps = PageProps>() {
 
 /**
  * useFlash() — convenience hook for flash messages.
+ *
+ * Returns the flash data set by Rails (notice/alert). Note that Inertia Rails
+ * places this at the top level of the page object, not inside props.
  */
 export function useFlash(): FlashData {
   const page = useContext(InertiaContext)
-  const props = page?.props as any
-  return {
-    alert: props?.flash?.alert,
-    notice: props?.flash?.notice,
-  }
+  return page?.flash ?? {}
 }
 
 /**
