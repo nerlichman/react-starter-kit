@@ -11,7 +11,7 @@
  * Same pattern — provide a resolve function and optional default layout.
  */
 
-import { createInertiaApp, type PageComponent } from "./lib/inertia"
+import { type PageComponent, createInertiaApp } from "./lib/inertia"
 
 // Import all screens eagerly (same as web's import.meta.glob)
 import DashboardIndex from "./screens/dashboard/index"
@@ -40,7 +40,8 @@ createInertiaApp({
   //   - Android Emulator: use 10.0.2.2 (maps to host localhost)
   //   - Physical device: use your machine's local IP
   baseUrl: __DEV__
-    ? "http://localhost:3000"
+    ? // ? "http://localhost:3000"
+      "http://192.168.1.7:3000"
     : "https://myapp.example.com",
 
   // Resolve component names to screen components — same as web
