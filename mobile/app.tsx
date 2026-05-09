@@ -16,13 +16,21 @@ import { createInertiaApp, type PageComponent } from "./lib/inertia"
 // Import all screens eagerly (same as web's import.meta.glob)
 import DashboardIndex from "./screens/dashboard/index"
 import SessionsNew from "./screens/sessions/new"
+import SettingsEmailsShow from "./screens/settings/emails/show"
+import SettingsPasswordsShow from "./screens/settings/passwords/show"
 import SettingsProfilesShow from "./screens/settings/profiles/show"
+import SettingsSessionsIndex from "./screens/settings/sessions/index"
+import UsersNew from "./screens/users/new"
 
 // Screen registry — maps Inertia component names to RN screen components
 const screens: Record<string, { default: PageComponent }> = {
   "dashboard/index": { default: DashboardIndex },
   "sessions/new": { default: SessionsNew },
+  "settings/emails/show": { default: SettingsEmailsShow },
+  "settings/passwords/show": { default: SettingsPasswordsShow },
   "settings/profiles/show": { default: SettingsProfilesShow },
+  "settings/sessions/index": { default: SettingsSessionsIndex },
+  "users/new": { default: UsersNew },
 }
 
 createInertiaApp({

@@ -1,11 +1,5 @@
 /**
- * Settings Profile screen — maps to Inertia component 'settings/profiles/show'
- *
- * Editable name form. On submit:
- *   - PATCH /settings/profile (Inertia)
- *   - Server redirects to /settings/profile with flash[:notice]
- *   - FlashToaster shows a native success toast
- *   - On validation error, the form displays inline errors
+ * Settings Email screen — maps to Inertia component 'settings/emails/show'
  */
 
 import React from "react"
@@ -23,21 +17,24 @@ import {
   usePage,
   useForm,
   useBack,
-  Link,
   type PageComponent,
 } from "../../../lib/inertia"
 import AppLayout from "../../../layouts/AppLayout"
-import type { SettingsProfileProps } from "../../../shared/types"
+import type { SettingsEmailProps } from "../../../shared/types"
 
-const SettingsProfileScreen: PageComponent = () => {
-  const { props } = usePage<SettingsProfileProps>()
+const SettingsEmailScreen: PageComponent = () => {
+  const { props } = usePage<SettingsEmailProps>()
   const { canGoBack, back } = useBack()
 
-  const form = useForm({ name: props.auth.user.name })
+  const form = useForm({
+    email: props.auth.user.email,
+    password_challenge: "",
+  })
 
   const onSave = () => {
-    form.patch("/settings/profile", {
-      onSuccess: () => form.setDefaults(),
+    form.patch("/settings/email", {
+      onSuccess: () =>
+        form.setData((prev) => ({ ...prev, password_challenge: "" })),
     })
   }
 
@@ -49,26 +46,50 @@ const SettingsProfileScreen: PageComponent = () => {
         </Pressable>
       ) : null}
 
-      <Text style={styles.title}>Profile Settings</Text>
+      <Text style={styles.title}>Email</Text>
+      <Text style={styles.subtitle}>
+        Update the email address associated with your account
+      </Text>
 
       <View style={styles.card}>
-        <Text style={styles.label}>Name</Text>
+        <Text style={styles.label}>Email</Text>
         <TextInput
-          value={form.data.name}
-          onChangeText={(value) => form.setData("name", value)}
+          value={form.data.email}
+          onChangeText={(v) => form.setData("email", v)}
           style={styles.input}
-          autoCapitalize="words"
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="email-address"
+          textContentType="emailAddress"
+          autoComplete="email"
           editable={!form.processing}
         />
-        {form.errors.name ? (
-          <Text style={styles.error}>{form.errors.name}</Text>
+        {form.errors.email ? (
+          <Text style={styles.error}>{form.errors.email}</Text>
         ) : null}
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.label}>Email</Text>
-        <Text style={styles.value}>{props.auth.user.email}</Text>
+        <Text style={styles.label}>Current password</Text>
+        <TextInput
+          value={form.data.password_challenge}
+          onChangeText={(v) => form.setData("password_challenge", v)}
+          style={styles.input}
+          secureTextEntry
+          autoComplete="current-password"
+          textContentType="password"
+          editable={!form.processing}
+        />
+        {form.errors.password_challenge ? (
+          <Text style={styles.error}>{form.errors.password_challenge}</Text>
+        ) : null}
       </View>
+
+      {props.auth.user.verified ? null : (
+        <Text style={styles.warning}>
+          Your email is not yet verified. Please check your inbox.
+        </Text>
+      )}
 
       <Pressable
         style={[
@@ -81,28 +102,16 @@ const SettingsProfileScreen: PageComponent = () => {
         {form.processing ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.saveButtonText}>Save</Text>
+          <Text style={styles.saveButtonText}>Update email</Text>
         )}
       </Pressable>
-
-      <View style={styles.subLinks}>
-        <Link href="/settings/password" style={styles.subLink}>
-          <Text style={styles.subLinkText}>Change password →</Text>
-        </Link>
-        <Link href="/settings/email" style={styles.subLink}>
-          <Text style={styles.subLinkText}>Change email →</Text>
-        </Link>
-        <Link href="/settings/sessions" style={styles.subLink}>
-          <Text style={styles.subLinkText}>Active sessions →</Text>
-        </Link>
-      </View>
     </ScrollView>
   )
 }
 
-SettingsProfileScreen.layout = (page) => <AppLayout>{page}</AppLayout>
+SettingsEmailScreen.layout = (page) => <AppLayout>{page}</AppLayout>
 
-export default SettingsProfileScreen
+export default SettingsEmailScreen
 
 const styles = StyleSheet.create({
   container: {
@@ -116,7 +125,6 @@ const styles = StyleSheet.create({
   backButton: {
     alignSelf: "flex-start",
     paddingVertical: 4,
-    paddingHorizontal: 4,
   },
   backText: {
     fontSize: 17,
@@ -127,6 +135,11 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "700",
     color: "#000",
+  },
+  subtitle: {
+    fontSize: 15,
+    color: "#666",
+    marginBottom: 8,
   },
   card: {
     backgroundColor: "#f5f5f5",
@@ -141,10 +154,6 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
-  value: {
-    fontSize: 17,
-    color: "#000",
-  },
   input: {
     fontSize: 17,
     color: "#000",
@@ -154,6 +163,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#ef4444",
     marginTop: 4,
+  },
+  warning: {
+    fontSize: 13,
+    color: "#b45309",
+    paddingHorizontal: 4,
   },
   saveButton: {
     backgroundColor: "#2563eb",
@@ -169,18 +183,5 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 17,
     fontWeight: "600",
-  },
-  subLinks: {
-    marginTop: 8,
-    gap: 4,
-  },
-  subLink: {
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-  },
-  subLinkText: {
-    fontSize: 16,
-    color: "#2563eb",
-    fontWeight: "500",
   },
 })

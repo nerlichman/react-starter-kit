@@ -1,43 +1,56 @@
 /**
- * Login screen — maps to Inertia component 'sessions/new'
+ * Sign-up screen — maps to Inertia component 'users/new'
  *
- * Equivalent to app/frontend/pages/sessions/new.tsx on web.
+ * Equivalent to app/frontend/pages/users/new.tsx on web.
  */
 
 import React from "react"
-import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  StyleSheet,
-  Alert,
-} from "react-native"
+import { View, Text, TextInput, Pressable, StyleSheet } from "react-native"
 
 import { useForm, Link, type PageComponent } from "../../lib/inertia"
 import AuthLayout from "../../layouts/AuthLayout"
-import type { SessionsNewProps } from "../../shared/types"
 
-const LoginScreen: PageComponent = () => {
+const SignUpScreen: PageComponent = () => {
   const form = useForm({
+    name: "",
     email: "",
     password: "",
+    password_confirmation: "",
   })
 
   const handleSubmit = () => {
-    form.post("/sign_in")
+    form.post("/sign_up", {
+      onSuccess: () => form.reset("password", "password_confirmation"),
+    })
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Sign in</Text>
+      <Text style={styles.title}>Create an account</Text>
       <Text style={styles.subtitle}>
-        Enter your email and password to access your account
+        Enter your details below to create your account
       </Text>
 
       <View style={styles.form}>
         <View style={styles.field}>
-          <Text style={styles.label}>Email</Text>
+          <Text style={styles.label}>Name</Text>
+          <TextInput
+            style={[styles.input, form.errors.name && styles.inputError]}
+            value={form.data.name}
+            onChangeText={(v) => form.setData("name", v)}
+            placeholder="Full name"
+            autoCapitalize="words"
+            autoComplete="name"
+            textContentType="name"
+            editable={!form.processing}
+          />
+          {form.errors.name ? (
+            <Text style={styles.error}>{form.errors.name}</Text>
+          ) : null}
+        </View>
+
+        <View style={styles.field}>
+          <Text style={styles.label}>Email address</Text>
           <TextInput
             style={[styles.input, form.errors.email && styles.inputError]}
             value={form.data.email}
@@ -48,10 +61,11 @@ const LoginScreen: PageComponent = () => {
             keyboardType="email-address"
             textContentType="emailAddress"
             autoComplete="email"
+            editable={!form.processing}
           />
-          {form.errors.email && (
+          {form.errors.email ? (
             <Text style={styles.error}>{form.errors.email}</Text>
-          )}
+          ) : null}
         </View>
 
         <View style={styles.field}>
@@ -62,12 +76,33 @@ const LoginScreen: PageComponent = () => {
             onChangeText={(v) => form.setData("password", v)}
             placeholder="Password"
             secureTextEntry
-            textContentType="password"
-            autoComplete="password"
+            autoComplete="new-password"
+            textContentType="newPassword"
+            editable={!form.processing}
           />
-          {form.errors.password && (
+          {form.errors.password ? (
             <Text style={styles.error}>{form.errors.password}</Text>
-          )}
+          ) : null}
+        </View>
+
+        <View style={styles.field}>
+          <Text style={styles.label}>Confirm password</Text>
+          <TextInput
+            style={[
+              styles.input,
+              form.errors.password_confirmation && styles.inputError,
+            ]}
+            value={form.data.password_confirmation}
+            onChangeText={(v) => form.setData("password_confirmation", v)}
+            placeholder="Confirm password"
+            secureTextEntry
+            autoComplete="new-password"
+            textContentType="newPassword"
+            editable={!form.processing}
+          />
+          {form.errors.password_confirmation ? (
+            <Text style={styles.error}>{form.errors.password_confirmation}</Text>
+          ) : null}
         </View>
 
         <Pressable
@@ -76,25 +111,24 @@ const LoginScreen: PageComponent = () => {
           disabled={form.processing}
         >
           <Text style={styles.buttonText}>
-            {form.processing ? "Signing in..." : "Sign in"}
+            {form.processing ? "Creating account..." : "Create account"}
           </Text>
         </Pressable>
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Don't have an account? </Text>
-        <Link href="/sign_up">
-          <Text style={styles.footerLink}>Sign up</Text>
+        <Text style={styles.footerText}>Already have an account? </Text>
+        <Link href="/sign_in">
+          <Text style={styles.footerLink}>Log in</Text>
         </Link>
       </View>
     </View>
   )
 }
 
-// Auth screens use the AuthLayout (no tab bar)
-LoginScreen.layout = (page) => <AuthLayout>{page}</AuthLayout>
+SignUpScreen.layout = (page) => <AuthLayout>{page}</AuthLayout>
 
-export default LoginScreen
+export default SignUpScreen
 
 const styles = StyleSheet.create({
   container: {

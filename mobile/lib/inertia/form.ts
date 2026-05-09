@@ -82,12 +82,33 @@ export function useForm<TForm extends Record<string, unknown>>(
       setRecentlySuccessful(false)
       clearTimeout(recentlySuccessfulTimer.current)
 
+      const flattenErrors = (raw: Errors): Partial<Record<keyof TForm, string>> => {
+        const flat: Partial<Record<keyof TForm, string>> = {}
+        for (const [key, value] of Object.entries(raw)) {
+          flat[key as keyof TForm] = Array.isArray(value)
+            ? value[0]
+            : (value as string)
+        }
+        return flat
+      }
+
       router.visit(url, {
         ...options,
         method: method.toUpperCase() as Method,
         data: transformedData as Record<string, unknown>,
         onSuccess: (page) => {
           setProcessing(false)
+
+          // Inertia Rails redirects validation failures with
+          // `inertia: {errors: ...}`, which lands as `page.props.errors` on
+          // the redirected page (not as a 422). Treat that as a form error.
+          const pageErrors = page.props.errors as Errors | undefined
+          if (pageErrors && Object.keys(pageErrors).length > 0) {
+            setErrors(flattenErrors(pageErrors))
+            options?.onError?.(pageErrors)
+            return
+          }
+
           setWasSuccessful(true)
           setRecentlySuccessful(true)
           setErrors({})
@@ -100,14 +121,7 @@ export function useForm<TForm extends Record<string, unknown>>(
         },
         onError: (responseErrors) => {
           setProcessing(false)
-          // Flatten errors — Inertia may return string or string[]
-          const flat: Partial<Record<keyof TForm, string>> = {}
-          for (const [key, value] of Object.entries(responseErrors)) {
-            flat[key as keyof TForm] = Array.isArray(value)
-              ? value[0]
-              : (value as string)
-          }
-          setErrors(flat)
+          setErrors(flattenErrors(responseErrors))
           options?.onError?.(responseErrors)
         },
         onFinish: () => {

@@ -13,10 +13,22 @@ class UsersController < InertiaController
     if @user.save
       session_record = @user.sessions.create!
       cookies.signed.permanent[:session_token] = {value: session_record.id, httponly: true}
-
       send_email_verification
+
+      if native_request?
+        # Mirror SessionsController#create — native clients can't reliably
+        # capture headers from a 302, so return the token as 200 JSON instead.
+        render json: {session_token: session_record.id, location: dashboard_path}
+        return
+      end
+
       redirect_to dashboard_path, notice: "Welcome! You have signed up successfully"
     else
+      if native_request?
+        render json: {errors: @user.errors.as_json}, status: :unprocessable_entity
+        return
+      end
+
       redirect_to sign_up_path, inertia: {errors: @user.errors}
     end
   end
