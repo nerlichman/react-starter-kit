@@ -18,16 +18,15 @@ import {
 
 import {
   usePage,
-  useBack,
   router,
   type PageComponent,
 } from "../../../lib/inertia"
 import AppLayout from "../../../layouts/AppLayout"
+import ScreenHeader from "../../../components/ScreenHeader"
 import type { SettingsSessionsProps, Session } from "../../../shared/types"
 
 const SettingsSessionsScreen: PageComponent = () => {
   const { props } = usePage<SettingsSessionsProps>()
-  const { canGoBack, back } = useBack()
   const currentSessionId = props.auth.session.id
 
   const revoke = (session: Session) => {
@@ -46,13 +45,9 @@ const SettingsSessionsScreen: PageComponent = () => {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {canGoBack ? (
-        <Pressable onPress={back} style={styles.backButton}>
-          <Text style={styles.backText}>‹ Back</Text>
-        </Pressable>
-      ) : null}
-
+    <>
+      <ScreenHeader title="Sessions" />
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Sessions</Text>
       <Text style={styles.subtitle}>
         Manage your active sessions across devices
@@ -91,7 +86,8 @@ const SettingsSessionsScreen: PageComponent = () => {
           )
         })}
       </View>
-    </ScrollView>
+      </ScrollView>
+    </>
   )
 }
 
@@ -107,15 +103,6 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     gap: 12,
-  },
-  backButton: {
-    alignSelf: "flex-start",
-    paddingVertical: 4,
-  },
-  backText: {
-    fontSize: 17,
-    color: "#2563eb",
-    fontWeight: "500",
   },
   title: {
     fontSize: 28,

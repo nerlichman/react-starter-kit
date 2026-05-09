@@ -8,7 +8,7 @@
  * Same pattern as the web sidebar layout.
  */
 
-import React, { type ReactNode, useState, useEffect } from "react"
+import React, { type ReactNode, useEffect, useState } from "react"
 import { View, SafeAreaView, StyleSheet } from "react-native"
 import TabView, { type AppleIcon } from "react-native-bottom-tabs"
 
@@ -33,9 +33,11 @@ const routes = [
   },
 ]
 
-const tabHrefs: Record<string, string> = {
-  dashboard: "/dashboard",
-  settings: "/settings/profile",
+// `href` is where tapping the tab navigates; `prefix` is the URL pattern that
+// keeps the tab highlighted (so /settings/sessions still lights up Settings).
+const tabConfig: Record<string, { href: string; prefix: string }> = {
+  dashboard: { href: "/dashboard", prefix: "/dashboard" },
+  settings: { href: "/settings/profile", prefix: "/settings" },
 }
 
 interface AppLayoutProps {
@@ -45,24 +47,38 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   const { url } = usePage()
 
-  // Derive active tab from the current Inertia URL
-  const urlIndex = routes.findIndex((r) => url.startsWith(tabHrefs[r.key]!))
-  const [index, setIndex] = useState(urlIndex >= 0 ? urlIndex : 0)
+  // Derive the URL-driven tab index every render — no useEffect lag, so when
+  // a Link navigates into a tabbed screen, the tab updates in the same paint
+  // as the screen content (otherwise the new screen flashes inside the old
+  // tab's slot for one frame).
+  const urlIndex = routes.findIndex((r) =>
+    url.startsWith(tabConfig[r.key]!.prefix),
+  )
+  const resolvedUrlIndex = urlIndex >= 0 ? urlIndex : 0
 
-  // Sync tab selection when URL changes (after Inertia navigation completes)
+  // Optimistic state purely so a tab tap shows its highlight before the
+  // network fetch lands. Cleared once the URL catches up.
+  const [optimisticIndex, setOptimisticIndex] = useState<number | null>(null)
   useEffect(() => {
-    if (urlIndex >= 0) setIndex(urlIndex)
-  }, [urlIndex])
+    if (optimisticIndex !== null && optimisticIndex === resolvedUrlIndex) {
+      setOptimisticIndex(null)
+    }
+  }, [optimisticIndex, resolvedUrlIndex])
+
+  const index = optimisticIndex ?? resolvedUrlIndex
 
   return (
     <TabView
       navigationState={{ index, routes }}
       onIndexChange={(newIndex) => {
-        setIndex(newIndex) // Immediate visual feedback
-        const href = tabHrefs[routes[newIndex]!.key]
-        // Tab switches replace the current page rather than push, so tabs
-        // don't accumulate back-history (standard mobile tab behavior).
-        if (href) router.replace(href)
+        setOptimisticIndex(newIndex)
+        const href = tabConfig[routes[newIndex]!.key]?.href
+        if (!href) return
+        // A tab tap is a context switch, not a step in a navigation stack:
+        // drop any back-history accumulated within the previous tab so the
+        // target tab root never shows a back arrow (standard iOS behavior).
+        router.clearHistory()
+        router.replace(href)
       }}
       renderScene={({ route }) => {
         const isActive = route.key === routes[index]?.key

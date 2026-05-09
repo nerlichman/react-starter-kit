@@ -10,28 +10,27 @@
 
 import React from "react"
 import {
-  View,
-  Text,
+  ActivityIndicator,
+  Pressable,
   ScrollView,
   StyleSheet,
+  Text,
   TextInput,
-  Pressable,
-  ActivityIndicator,
+  View,
 } from "react-native"
 
+import ScreenHeader from "../../../components/ScreenHeader"
+import AppLayout from "../../../layouts/AppLayout"
 import {
-  usePage,
-  useForm,
-  useBack,
   Link,
   type PageComponent,
+  useForm,
+  usePage,
 } from "../../../lib/inertia"
-import AppLayout from "../../../layouts/AppLayout"
 import type { SettingsProfileProps } from "../../../shared/types"
 
 const SettingsProfileScreen: PageComponent = () => {
   const { props } = usePage<SettingsProfileProps>()
-  const { canGoBack, back } = useBack()
 
   const form = useForm({ name: props.auth.user.name })
 
@@ -42,13 +41,8 @@ const SettingsProfileScreen: PageComponent = () => {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {canGoBack ? (
-        <Pressable onPress={back} style={styles.backButton}>
-          <Text style={styles.backText}>‹ Back</Text>
-        </Pressable>
-      ) : null}
-
+    <>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Profile Settings</Text>
 
       <View style={styles.card}>
@@ -96,7 +90,8 @@ const SettingsProfileScreen: PageComponent = () => {
           <Text style={styles.subLinkText}>Active sessions →</Text>
         </Link>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </>
   )
 }
 
@@ -112,16 +107,6 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     gap: 16,
-  },
-  backButton: {
-    alignSelf: "flex-start",
-    paddingVertical: 4,
-    paddingHorizontal: 4,
-  },
-  backText: {
-    fontSize: 17,
-    color: "#2563eb",
-    fontWeight: "500",
   },
   title: {
     fontSize: 28,
@@ -184,3 +169,4 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 })
+
