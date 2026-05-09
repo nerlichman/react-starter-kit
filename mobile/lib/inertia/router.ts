@@ -28,10 +28,13 @@ type PageListener = (page: InertiaPage) => void
 class InertiaRouter {
   private baseUrl: string = ""
   private currentPage: InertiaPage | null = null
+  private history: InertiaPage[] = []
   private version: string | null = null
   private authToken: string | null = null
   private pageListeners: Set<PageListener> = new Set()
   private abortController: AbortController | null = null
+  // Set internally by back() so the next setPage() doesn't re-push to history
+  private suppressHistoryPush = false
 
   /** Configure the router with the server base URL */
   configure(baseUrl: string) {
@@ -54,7 +57,18 @@ class InertiaRouter {
     return () => this.pageListeners.delete(listener)
   }
 
-  private setPage(page: InertiaPage) {
+  private setPage(page: InertiaPage, options: { replace?: boolean } = {}) {
+    // Push the outgoing page onto history unless we're replacing or popping
+    if (
+      this.currentPage &&
+      !options.replace &&
+      !this.suppressHistoryPush &&
+      this.currentPage.url !== page.url
+    ) {
+      this.history.push(this.currentPage)
+    }
+    this.suppressHistoryPush = false
+
     this.currentPage = page
     this.version = page.version
     for (const listener of this.pageListeners) {
@@ -62,22 +76,53 @@ class InertiaRouter {
     }
   }
 
+  /** Whether there's a previous page to navigate back to */
+  canGoBack(): boolean {
+    return this.history.length > 0
+  }
+
+  /**
+   * Pop the previous page off the history stack and render it.
+   * Returns true if it navigated back, false if the stack was empty.
+   */
+  back(): boolean {
+    const previous = this.history.pop()
+    if (!previous) return false
+    this.suppressHistoryPush = true
+    this.setPage(previous)
+    return true
+  }
+
+  /** Clear the history stack — useful after login or logout */
+  clearHistory() {
+    this.history = []
+  }
+
   /** Core visit method — fetches Inertia JSON and updates state */
   async visit(url: string, options: VisitOptions = {}): Promise<void> {
     const method: Method = (options.method || "GET").toUpperCase() as Method
+    // Internal flag: when handleResponse recurses (e.g. follows a redirect),
+    // the outer visit owns lifecycle events. The inner one stays silent so
+    // before/start/finish/onFinish fire exactly once per user-initiated visit.
+    const silent = options._silent === true
 
     // Fire 'before' event (cancelable)
-    if (options.onBefore && options.onBefore() === false) return
-    if (!events.emit("before", { url, method })) return
-
-    // Cancel any in-flight request
-    if (this.abortController) {
-      this.abortController.abort()
+    if (!silent) {
+      if (options.onBefore && options.onBefore() === false) return
+      if (!events.emit("before", { url, method })) return
     }
-    this.abortController = new AbortController()
 
-    events.emit("start")
-    options.onStart?.()
+    // Cancel any in-flight request (only the outer visit does this — inner
+    // redirect-followers must not abort their own parent)
+    if (!silent) {
+      if (this.abortController) {
+        this.abortController.abort()
+      }
+      this.abortController = new AbortController()
+
+      events.emit("start")
+      options.onStart?.()
+    }
 
     try {
       const response = await this.makeRequest(url, method, options)
@@ -85,12 +130,16 @@ class InertiaRouter {
     } catch (error: any) {
       if (error.name === "AbortError") return
       console.error("[Inertia] Request failed:", error)
-      options.onError?.({ _global: error.message } as unknown as Errors)
-      events.emit("error", { _global: error.message })
+      if (!silent) {
+        options.onError?.({ _global: error.message } as unknown as Errors)
+        events.emit("error", { _global: error.message })
+      }
     } finally {
-      this.abortController = null
-      events.emit("finish")
-      options.onFinish?.()
+      if (!silent) {
+        this.abortController = null
+        events.emit("finish")
+        options.onFinish?.()
+      }
     }
   }
 
@@ -203,7 +252,12 @@ class InertiaRouter {
       }
 
       if (location) {
-        return this.visit(location, { method: "GET" })
+        return this.visit(location, {
+          method: "GET",
+          _silent: true,
+          onSuccess: options.onSuccess,
+          onError: options.onError,
+        })
       }
     }
 
@@ -212,7 +266,7 @@ class InertiaRouter {
       console.log("[Inertia] 401 Unauthorized — clearing token, redirecting to login")
       await clearToken()
       this.authToken = null
-      return this.visit("/sign_in", { method: "GET" })
+      return this.visit("/sign_in", { method: "GET", _silent: true })
     }
 
     // Handle 409 version conflict — clear version and retry
@@ -220,9 +274,9 @@ class InertiaRouter {
       const location = response.headers.get("X-Inertia-Location")
       this.version = null
       if (location) {
-        return this.visit(location)
+        return this.visit(location, { _silent: true })
       }
-      return this.visit(originalUrl)
+      return this.visit(originalUrl, { _silent: true })
     }
 
     // Capture session token from any response
@@ -255,7 +309,13 @@ class InertiaRouter {
         console.log("[Inertia] Native auth success — storing token, visiting:", body.location)
         this.authToken = String(body.session_token)
         await setToken(String(body.session_token))
-        return this.visit(body.location, { method: "GET" })
+        this.clearHistory()
+        return this.visit(body.location, {
+          method: "GET",
+          replace: true,
+          _silent: true,
+          onSuccess: options.onSuccess,
+        })
       }
 
       // Native validation errors — backend returns { errors: {...} } as 422 JSON
@@ -300,8 +360,13 @@ class InertiaRouter {
       page.props = { ...this.currentPage.props, ...page.props }
     }
 
-    // Update the current page (triggers re-render)
-    this.setPage(page)
+    // Partial reloads, reloads, and explicit replace skip the history push
+    const replace =
+      options.replace || !!options.only || !!options.except ||
+      // A reload of the same URL is a replace, not a push
+      (this.currentPage?.url === page.url)
+
+    this.setPage(page, { replace })
 
     options.onSuccess?.(page)
     events.emit("success", page)
@@ -347,6 +412,11 @@ class InertiaRouter {
     })
   }
 
+  /** Visit a URL replacing the current page in history (no back entry) */
+  replace(url: string, options?: Omit<VisitOptions, "replace">) {
+    return this.visit(url, { ...options, replace: true })
+  }
+
   /** Destroy the server session, clear local auth, and navigate to login */
   async logout(sessionId?: string) {
     // Destroy the session server-side if we have an ID
@@ -362,7 +432,8 @@ class InertiaRouter {
     this.authToken = null
     this.currentPage = null
     this.version = null
-    return this.visit("/sign_in")
+    this.clearHistory()
+    return this.visit("/sign_in", { replace: true })
   }
 }
 

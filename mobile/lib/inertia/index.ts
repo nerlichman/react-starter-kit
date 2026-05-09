@@ -11,12 +11,13 @@ export { createInertiaApp } from "./createInertiaApp"
 export { router } from "./router"
 
 // Hooks
-export { usePage, useFlash } from "./context"
+export { usePage, useFlash, useBack } from "./context"
 export { useForm } from "./form"
 export type { InertiaFormProps } from "./form"
 
 // Components
 export { Link } from "./link"
+export { FlashToaster } from "./flash"
 
 // Types
 export type {

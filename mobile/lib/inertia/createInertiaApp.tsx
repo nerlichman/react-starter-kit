@@ -6,11 +6,19 @@
  */
 
 import React, { useEffect, useState, useRef } from "react"
-import { View, ActivityIndicator, Text, StyleSheet } from "react-native"
+import {
+  View,
+  ActivityIndicator,
+  Text,
+  StyleSheet,
+  BackHandler,
+  Platform,
+} from "react-native"
 import { registerRootComponent } from "expo"
 
 import { router } from "./router"
 import { InertiaProvider } from "./context"
+import { FlashToaster } from "./flash"
 import type {
   ResolveComponent,
   PageComponent,
@@ -109,7 +117,20 @@ export function createInertiaApp(options: CreateInertiaAppOptions) {
 
       bootstrap()
 
-      return unsubscribe
+      // Android hardware back button → router.back(). When the history stack
+      // is empty, return false so the OS handles it (closes the app).
+      let backSubscription: { remove: () => void } | null = null
+      if (Platform.OS === "android") {
+        backSubscription = BackHandler.addEventListener(
+          "hardwareBackPress",
+          () => router.back(),
+        )
+      }
+
+      return () => {
+        unsubscribe()
+        backSubscription?.remove()
+      }
     }, [])
 
     // Error state
@@ -132,7 +153,12 @@ export function createInertiaApp(options: CreateInertiaAppOptions) {
     }
 
     // Render the resolved component inside the provider
-    return <InertiaProvider page={page}>{renderedElement}</InertiaProvider>
+    return (
+      <InertiaProvider page={page}>
+        <FlashToaster />
+        {renderedElement}
+      </InertiaProvider>
+    )
   }
 
   // Register as the Expo root component

@@ -5,8 +5,15 @@
  * usePage() works identically to the web adapter.
  */
 
-import React, { createContext, useContext, type ReactNode } from "react"
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react"
 
+import { router } from "./router"
 import type { InertiaPage, PageProps, FlashData } from "./types"
 
 const InertiaContext = createContext<InertiaPage | null>(null)
@@ -52,5 +59,28 @@ export function useFlash(): FlashData {
   return {
     alert: props?.flash?.alert,
     notice: props?.flash?.notice,
+  }
+}
+
+/**
+ * useBack() — back-navigation helpers.
+ *
+ *   const { canGoBack, back } = useBack()
+ *
+ * Re-renders the consumer when the navigable history changes (e.g. after a
+ * push or pop) so a header back button can show/hide correctly.
+ */
+export function useBack() {
+  const [canGoBack, setCanGoBack] = useState(router.canGoBack())
+
+  useEffect(() => {
+    return router.onPageChange(() => {
+      setCanGoBack(router.canGoBack())
+    })
+  }, [])
+
+  return {
+    canGoBack,
+    back: () => router.back(),
   }
 }

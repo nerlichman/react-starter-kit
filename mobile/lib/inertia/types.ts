@@ -42,6 +42,13 @@ export interface VisitOptions {
   onSuccess?: (page: InertiaPage) => void
   onError?: (errors: Errors) => void
   onFinish?: () => void
+  /**
+   * Internal: when true, the router skips lifecycle events and callbacks
+   * (before/start/finish/onFinish/etc). Used by handleResponse() so a redirect
+   * chain emits lifecycle exactly once for the user-initiated visit.
+   * @internal
+   */
+  _silent?: boolean
 }
 
 export type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
