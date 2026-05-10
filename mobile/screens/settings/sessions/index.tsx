@@ -6,7 +6,7 @@
  * flash[:notice], which the FlashToaster will surface.
  */
 
-import React from "react"
+import React, { useMemo } from "react"
 import {
   View,
   Text,
@@ -23,10 +23,13 @@ import {
 } from "../../../lib/inertia"
 import AppLayout from "../../../layouts/AppLayout"
 import ScreenHeader from "../../../components/ScreenHeader"
+import { useTheme, type Theme } from "../../../lib/theme"
 import type { SettingsSessionsProps, Session } from "../../../shared/types"
 
 const SettingsSessionsScreen: PageComponent = () => {
   const { props } = usePage<SettingsSessionsProps>()
+  const theme = useTheme()
+  const styles = useMemo(() => makeStyles(theme), [theme])
   const currentSessionId = props.auth.session.id
 
   const revoke = (session: Session) => {
@@ -95,71 +98,72 @@ SettingsSessionsScreen.layout = (page) => <AppLayout>{page}</AppLayout>
 
 export default SettingsSessionsScreen
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  content: {
-    padding: 20,
-    gap: 12,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#000",
-  },
-  subtitle: {
-    fontSize: 15,
-    color: "#666",
-    marginBottom: 8,
-  },
-  list: {
-    gap: 12,
-  },
-  card: {
-    backgroundColor: "#f5f5f5",
-    borderRadius: 12,
-    padding: 16,
-    gap: 6,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 8,
-  },
-  userAgent: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#000",
-  },
-  badge: {
-    backgroundColor: "#e5e7eb",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 999,
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#374151",
-  },
-  meta: {
-    fontSize: 13,
-    color: "#6b7280",
-  },
-  revokeButton: {
-    alignSelf: "flex-start",
-    backgroundColor: "#fee2e2",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  revokeText: {
-    color: "#b91c1c",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-})
+const makeStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    content: {
+      padding: 20,
+      gap: 12,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: "700",
+      color: theme.colors.text,
+    },
+    subtitle: {
+      fontSize: 15,
+      color: theme.colors.textSecondary,
+      marginBottom: 8,
+    },
+    list: {
+      gap: 12,
+    },
+    card: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      padding: 16,
+      gap: 6,
+    },
+    cardHeader: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: 8,
+    },
+    userAgent: {
+      flex: 1,
+      fontSize: 15,
+      fontWeight: "600",
+      color: theme.colors.text,
+    },
+    badge: {
+      backgroundColor: theme.colors.surfaceMuted,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 999,
+    },
+    badgeText: {
+      fontSize: 12,
+      fontWeight: "600",
+      color: theme.colors.textSecondary,
+    },
+    meta: {
+      fontSize: 13,
+      color: theme.colors.textMuted,
+    },
+    revokeButton: {
+      alignSelf: "flex-start",
+      backgroundColor: theme.colors.dangerSurface,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 8,
+      marginTop: 8,
+    },
+    revokeText: {
+      color: theme.colors.dangerStrong,
+      fontSize: 14,
+      fontWeight: "600",
+    },
+  })

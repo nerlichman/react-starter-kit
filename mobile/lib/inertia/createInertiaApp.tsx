@@ -13,8 +13,10 @@ import {
   StyleSheet,
   BackHandler,
   Platform,
+  useColorScheme,
 } from "react-native"
 import { registerRootComponent } from "expo"
+import { StatusBar } from "expo-status-bar"
 
 import { router } from "./router"
 import { InertiaProvider } from "./context"
@@ -55,6 +57,11 @@ export function createInertiaApp(options: CreateInertiaAppOptions) {
       useState<React.ReactElement | null>(null)
     const [error, setError] = useState<string | null>(null)
     const initialized = useRef(false)
+    const scheme = useColorScheme()
+    const isDark = scheme === "dark"
+    const bg = isDark ? "#000000" : "#ffffff"
+    const errorTitleColor = isDark ? "#ff453a" : "#ef4444"
+    const errorTextColor = isDark ? "#8e8e93" : "#666666"
 
     useEffect(() => {
       // Prevent double-initialization in React strict mode
@@ -136,9 +143,14 @@ export function createInertiaApp(options: CreateInertiaAppOptions) {
     // Error state
     if (error) {
       return (
-        <View style={styles.error}>
-          <Text style={styles.errorTitle}>Inertia Error</Text>
-          <Text style={styles.errorText}>{error}</Text>
+        <View style={[styles.error, { backgroundColor: bg }]}>
+          <StatusBar style="auto" />
+          <Text style={[styles.errorTitle, { color: errorTitleColor }]}>
+            Inertia Error
+          </Text>
+          <Text style={[styles.errorText, { color: errorTextColor }]}>
+            {error}
+          </Text>
         </View>
       )
     }
@@ -146,7 +158,8 @@ export function createInertiaApp(options: CreateInertiaAppOptions) {
     // Loading state
     if (!page || !renderedElement) {
       return (
-        <View style={styles.loading}>
+        <View style={[styles.loading, { backgroundColor: bg }]}>
+          <StatusBar style="auto" />
           <ActivityIndicator size="large" />
         </View>
       )
@@ -155,6 +168,7 @@ export function createInertiaApp(options: CreateInertiaAppOptions) {
     // Render the resolved component inside the provider
     return (
       <InertiaProvider page={page}>
+        <StatusBar style="auto" />
         <FlashToaster />
         {renderedElement}
       </InertiaProvider>
@@ -170,24 +184,20 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#fff",
   },
   error: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#fff",
     padding: 24,
   },
   errorTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#ef4444",
     marginBottom: 8,
   },
   errorText: {
     fontSize: 14,
-    color: "#666",
     textAlign: "center",
     lineHeight: 20,
   },

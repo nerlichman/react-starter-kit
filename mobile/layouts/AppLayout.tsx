@@ -8,11 +8,12 @@
  * Same pattern as the web sidebar layout.
  */
 
-import React, { type ReactNode, useEffect, useState } from "react"
+import React, { type ReactNode, useEffect, useMemo, useState } from "react"
 import { View, SafeAreaView, StyleSheet } from "react-native"
 import TabView, { type AppleIcon } from "react-native-bottom-tabs"
 
 import { router, usePage } from "../lib/inertia"
+import { useTheme, type Theme } from "../lib/theme"
 
 const sfIcon = (name: string): AppleIcon => ({
   sfSymbol: name as AppleIcon["sfSymbol"],
@@ -46,6 +47,8 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const { url } = usePage()
+  const theme = useTheme()
+  const styles = useMemo(() => makeStyles(theme), [theme])
 
   // Derive the URL-driven tab index every render — no useEffect lag, so when
   // a Link navigates into a tabbed screen, the tab updates in the same paint
@@ -94,9 +97,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
   )
 }
 
-const styles = StyleSheet.create({
-  scene: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-})
+const makeStyles = (theme: Theme) =>
+  StyleSheet.create({
+    scene: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+  })

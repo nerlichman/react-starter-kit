@@ -2,7 +2,7 @@
  * Settings Password screen — maps to Inertia component 'settings/passwords/show'
  */
 
-import React from "react"
+import React, { useMemo } from "react"
 import {
   View,
   Text,
@@ -16,8 +16,11 @@ import {
 import { useForm, type PageComponent } from "../../../lib/inertia"
 import AppLayout from "../../../layouts/AppLayout"
 import ScreenHeader from "../../../components/ScreenHeader"
+import { useTheme, type Theme } from "../../../lib/theme"
 
 const SettingsPasswordScreen: PageComponent = () => {
+  const theme = useTheme()
+  const styles = useMemo(() => makeStyles(theme), [theme])
   const form = useForm({
     password_challenge: "",
     password: "",
@@ -96,7 +99,7 @@ const SettingsPasswordScreen: PageComponent = () => {
         disabled={!form.isDirty || form.processing}
       >
         {form.processing ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={theme.colors.onPrimary} />
         ) : (
           <Text style={styles.saveButtonText}>Update password</Text>
         )}
@@ -110,61 +113,62 @@ SettingsPasswordScreen.layout = (page) => <AppLayout>{page}</AppLayout>
 
 export default SettingsPasswordScreen
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  content: {
-    padding: 20,
-    gap: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#000",
-  },
-  subtitle: {
-    fontSize: 15,
-    color: "#666",
-    marginBottom: 8,
-  },
-  card: {
-    backgroundColor: "#f5f5f5",
-    borderRadius: 12,
-    padding: 16,
-    gap: 6,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#666",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  input: {
-    fontSize: 17,
-    color: "#000",
-    paddingVertical: 6,
-  },
-  error: {
-    fontSize: 13,
-    color: "#ef4444",
-    marginTop: 4,
-  },
-  saveButton: {
-    backgroundColor: "#2563eb",
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  saveButtonDisabled: {
-    backgroundColor: "#93c5fd",
-  },
-  saveButtonText: {
-    color: "#fff",
-    fontSize: 17,
-    fontWeight: "600",
-  },
-})
+const makeStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    content: {
+      padding: 20,
+      gap: 16,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: "700",
+      color: theme.colors.text,
+    },
+    subtitle: {
+      fontSize: 15,
+      color: theme.colors.textSecondary,
+      marginBottom: 8,
+    },
+    card: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      padding: 16,
+      gap: 6,
+    },
+    label: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: theme.colors.textSecondary,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+    },
+    input: {
+      fontSize: 17,
+      color: theme.colors.text,
+      paddingVertical: 6,
+    },
+    error: {
+      fontSize: 13,
+      color: theme.colors.danger,
+      marginTop: 4,
+    },
+    saveButton: {
+      backgroundColor: theme.colors.primary,
+      paddingVertical: 14,
+      borderRadius: 12,
+      alignItems: "center",
+      marginTop: 8,
+    },
+    saveButtonDisabled: {
+      backgroundColor: theme.colors.primaryMuted,
+    },
+    saveButtonText: {
+      color: theme.colors.onPrimary,
+      fontSize: 17,
+      fontWeight: "600",
+    },
+  })

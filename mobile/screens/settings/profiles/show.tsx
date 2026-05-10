@@ -8,7 +8,7 @@
  *   - On validation error, the form displays inline errors
  */
 
-import React from "react"
+import React, { useMemo } from "react"
 import {
   ActivityIndicator,
   Pressable,
@@ -19,7 +19,6 @@ import {
   View,
 } from "react-native"
 
-import ScreenHeader from "../../../components/ScreenHeader"
 import AppLayout from "../../../layouts/AppLayout"
 import {
   Link,
@@ -27,10 +26,13 @@ import {
   useForm,
   usePage,
 } from "../../../lib/inertia"
+import { useTheme, type Theme } from "../../../lib/theme"
 import type { SettingsProfileProps } from "../../../shared/types"
 
 const SettingsProfileScreen: PageComponent = () => {
   const { props } = usePage<SettingsProfileProps>()
+  const theme = useTheme()
+  const styles = useMemo(() => makeStyles(theme), [theme])
 
   const form = useForm({ name: props.auth.user.name })
 
@@ -73,7 +75,7 @@ const SettingsProfileScreen: PageComponent = () => {
         disabled={!form.isDirty || form.processing}
       >
         {form.processing ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={theme.colors.onPrimary} />
         ) : (
           <Text style={styles.saveButtonText}>Save</Text>
         )}
@@ -99,74 +101,74 @@ SettingsProfileScreen.layout = (page) => <AppLayout>{page}</AppLayout>
 
 export default SettingsProfileScreen
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  content: {
-    padding: 20,
-    gap: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#000",
-  },
-  card: {
-    backgroundColor: "#f5f5f5",
-    borderRadius: 12,
-    padding: 16,
-    gap: 6,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#666",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  value: {
-    fontSize: 17,
-    color: "#000",
-  },
-  input: {
-    fontSize: 17,
-    color: "#000",
-    paddingVertical: 6,
-  },
-  error: {
-    fontSize: 13,
-    color: "#ef4444",
-    marginTop: 4,
-  },
-  saveButton: {
-    backgroundColor: "#2563eb",
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  saveButtonDisabled: {
-    backgroundColor: "#93c5fd",
-  },
-  saveButtonText: {
-    color: "#fff",
-    fontSize: 17,
-    fontWeight: "600",
-  },
-  subLinks: {
-    marginTop: 8,
-    gap: 4,
-  },
-  subLink: {
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-  },
-  subLinkText: {
-    fontSize: 16,
-    color: "#2563eb",
-    fontWeight: "500",
-  },
-})
-
+const makeStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    content: {
+      padding: 20,
+      gap: 16,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: "700",
+      color: theme.colors.text,
+    },
+    card: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      padding: 16,
+      gap: 6,
+    },
+    label: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: theme.colors.textSecondary,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+    },
+    value: {
+      fontSize: 17,
+      color: theme.colors.text,
+    },
+    input: {
+      fontSize: 17,
+      color: theme.colors.text,
+      paddingVertical: 6,
+    },
+    error: {
+      fontSize: 13,
+      color: theme.colors.danger,
+      marginTop: 4,
+    },
+    saveButton: {
+      backgroundColor: theme.colors.primary,
+      paddingVertical: 14,
+      borderRadius: 12,
+      alignItems: "center",
+      marginTop: 8,
+    },
+    saveButtonDisabled: {
+      backgroundColor: theme.colors.primaryMuted,
+    },
+    saveButtonText: {
+      color: theme.colors.onPrimary,
+      fontSize: 17,
+      fontWeight: "600",
+    },
+    subLinks: {
+      marginTop: 8,
+      gap: 4,
+    },
+    subLink: {
+      paddingVertical: 10,
+      paddingHorizontal: 4,
+    },
+    subLinkText: {
+      fontSize: 16,
+      color: theme.colors.primary,
+      fontWeight: "500",
+    },
+  })

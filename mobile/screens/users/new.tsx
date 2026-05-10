@@ -4,13 +4,16 @@
  * Equivalent to app/frontend/pages/users/new.tsx on web.
  */
 
-import React from "react"
+import React, { useMemo } from "react"
 import { View, Text, TextInput, Pressable, StyleSheet } from "react-native"
 
 import { useForm, Link, type PageComponent } from "../../lib/inertia"
 import AuthLayout from "../../layouts/AuthLayout"
+import { useTheme, type Theme } from "../../lib/theme"
 
 const SignUpScreen: PageComponent = () => {
+  const theme = useTheme()
+  const styles = useMemo(() => makeStyles(theme), [theme])
   const form = useForm({
     name: "",
     email: "",
@@ -39,6 +42,7 @@ const SignUpScreen: PageComponent = () => {
             value={form.data.name}
             onChangeText={(v) => form.setData("name", v)}
             placeholder="Full name"
+            placeholderTextColor={theme.colors.textMuted}
             autoCapitalize="words"
             autoComplete="name"
             textContentType="name"
@@ -56,6 +60,7 @@ const SignUpScreen: PageComponent = () => {
             value={form.data.email}
             onChangeText={(v) => form.setData("email", v)}
             placeholder="email@example.com"
+            placeholderTextColor={theme.colors.textMuted}
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="email-address"
@@ -75,6 +80,7 @@ const SignUpScreen: PageComponent = () => {
             value={form.data.password}
             onChangeText={(v) => form.setData("password", v)}
             placeholder="Password"
+            placeholderTextColor={theme.colors.textMuted}
             secureTextEntry
             autoComplete="new-password"
             textContentType="newPassword"
@@ -95,6 +101,7 @@ const SignUpScreen: PageComponent = () => {
             value={form.data.password_confirmation}
             onChangeText={(v) => form.setData("password_confirmation", v)}
             placeholder="Confirm password"
+            placeholderTextColor={theme.colors.textMuted}
             secureTextEntry
             autoComplete="new-password"
             textContentType="newPassword"
@@ -130,74 +137,76 @@ SignUpScreen.layout = (page) => <AuthLayout>{page}</AuthLayout>
 
 export default SignUpScreen
 
-const styles = StyleSheet.create({
-  container: {
-    gap: 8,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#000",
-  },
-  subtitle: {
-    fontSize: 15,
-    color: "#666",
-    marginBottom: 16,
-  },
-  form: {
-    gap: 16,
-  },
-  field: {
-    gap: 6,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#333",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#d4d4d4",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 16,
-    backgroundColor: "#fff",
-  },
-  inputError: {
-    borderColor: "#ef4444",
-  },
-  error: {
-    fontSize: 13,
-    color: "#ef4444",
-  },
-  button: {
-    backgroundColor: "#171717",
-    borderRadius: 8,
-    paddingVertical: 12,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 24,
-  },
-  footerText: {
-    fontSize: 14,
-    color: "#666",
-  },
-  footerLink: {
-    fontSize: 14,
-    color: "#2563eb",
-    fontWeight: "500",
-  },
-})
+const makeStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      gap: 8,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: "700",
+      color: theme.colors.text,
+    },
+    subtitle: {
+      fontSize: 15,
+      color: theme.colors.textSecondary,
+      marginBottom: 16,
+    },
+    form: {
+      gap: 16,
+    },
+    field: {
+      gap: 6,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: "500",
+      color: theme.colors.textSecondary,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 16,
+      color: theme.colors.text,
+      backgroundColor: theme.colors.background,
+    },
+    inputError: {
+      borderColor: theme.colors.danger,
+    },
+    error: {
+      fontSize: 13,
+      color: theme.colors.danger,
+    },
+    button: {
+      backgroundColor: theme.colors.inverseSurface,
+      borderRadius: 8,
+      paddingVertical: 12,
+      alignItems: "center",
+      marginTop: 8,
+    },
+    buttonDisabled: {
+      opacity: 0.6,
+    },
+    buttonText: {
+      color: theme.colors.onInverseSurface,
+      fontSize: 16,
+      fontWeight: "600",
+    },
+    footer: {
+      flexDirection: "row",
+      justifyContent: "center",
+      marginTop: 24,
+    },
+    footerText: {
+      fontSize: 14,
+      color: theme.colors.textSecondary,
+    },
+    footerLink: {
+      fontSize: 14,
+      color: theme.colors.primary,
+      fontWeight: "500",
+    },
+  })

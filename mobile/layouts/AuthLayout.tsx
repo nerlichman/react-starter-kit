@@ -3,7 +3,7 @@
  * No tab bar. Similar to the web AuthSimpleLayout.
  */
 
-import React, { type ReactNode } from "react"
+import React, { type ReactNode, useMemo } from "react"
 import {
   View,
   KeyboardAvoidingView,
@@ -12,11 +12,16 @@ import {
   SafeAreaView,
 } from "react-native"
 
+import { useTheme, type Theme } from "../lib/theme"
+
 interface AuthLayoutProps {
   children: ReactNode
 }
 
 export default function AuthLayout({ children }: AuthLayoutProps) {
+  const theme = useTheme()
+  const styles = useMemo(() => makeStyles(theme), [theme])
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -29,19 +34,20 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  keyboardView: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  content: {
-    paddingHorizontal: 24,
-    width: "100%",
-    maxWidth: 400,
-    alignSelf: "center",
-  },
-})
+const makeStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    keyboardView: {
+      flex: 1,
+      justifyContent: "center",
+    },
+    content: {
+      paddingHorizontal: 24,
+      width: "100%",
+      maxWidth: 400,
+      alignSelf: "center",
+    },
+  })

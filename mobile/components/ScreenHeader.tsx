@@ -12,10 +12,11 @@
  *   <ScrollView>...</ScrollView>
  */
 
-import React from "react"
+import React, { useMemo } from "react"
 import { View, Text, Pressable, StyleSheet } from "react-native"
 
 import { useBack } from "../lib/inertia"
+import { useTheme, type Theme } from "../lib/theme"
 
 interface ScreenHeaderProps {
   title?: string
@@ -25,6 +26,8 @@ interface ScreenHeaderProps {
 
 export default function ScreenHeader({ title, trailing }: ScreenHeaderProps) {
   const { canGoBack, back } = useBack()
+  const theme = useTheme()
+  const styles = useMemo(() => makeStyles(theme), [theme])
 
   return (
     <View style={styles.container}>
@@ -49,37 +52,38 @@ export default function ScreenHeader({ title, trailing }: ScreenHeaderProps) {
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    height: 44,
-    paddingHorizontal: 8,
-  },
-  side: {
-    width: 80,
-    justifyContent: "center",
-  },
-  trailingSide: {
-    alignItems: "flex-end",
-  },
-  backButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 4,
-  },
-  backText: {
-    fontSize: 17,
-    color: "#2563eb",
-    fontWeight: "500",
-  },
-  titleContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 17,
-    fontWeight: "600",
-    color: "#000",
-  },
-})
+const makeStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      alignItems: "center",
+      height: 44,
+      paddingHorizontal: 8,
+    },
+    side: {
+      width: 80,
+      justifyContent: "center",
+    },
+    trailingSide: {
+      alignItems: "flex-end",
+    },
+    backButton: {
+      paddingVertical: 6,
+      paddingHorizontal: 4,
+    },
+    backText: {
+      fontSize: 17,
+      color: theme.colors.primary,
+      fontWeight: "500",
+    },
+    titleContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    title: {
+      fontSize: 17,
+      fontWeight: "600",
+      color: theme.colors.text,
+    },
+  })

@@ -4,15 +4,18 @@
  * Equivalent to app/frontend/pages/dashboard/index.tsx on web.
  */
 
-import React from "react"
+import React, { useMemo } from "react"
 import { View, Text, ScrollView, Pressable, StyleSheet, RefreshControl } from "react-native"
 
 import { usePage, router, type PageComponent } from "../../lib/inertia"
 import AppLayout from "../../layouts/AppLayout"
+import { useTheme, type Theme } from "../../lib/theme"
 import type { DashboardProps } from "../../shared/types"
 
 const DashboardScreen: PageComponent = () => {
   const { props } = usePage<DashboardProps>()
+  const theme = useTheme()
+  const styles = useMemo(() => makeStyles(theme), [theme])
   const [refreshing, setRefreshing] = React.useState(false)
 
   const onRefresh = React.useCallback(() => {
@@ -72,48 +75,49 @@ DashboardScreen.layout = (page) => <AppLayout>{page}</AppLayout>
 
 export default DashboardScreen
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  content: {
-    padding: 20,
-    gap: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#000",
-  },
-  welcome: {
-    fontSize: 16,
-    color: "#666",
-  },
-  card: {
-    backgroundColor: "#f5f5f5",
-    borderRadius: 12,
-    padding: 16,
-    gap: 8,
-  },
-  cardTitle: {
-    fontSize: 17,
-    fontWeight: "600",
-    color: "#000",
-  },
-  cardText: {
-    fontSize: 15,
-    color: "#444",
-    lineHeight: 22,
-  },
-  signOut: {
-    paddingVertical: 12,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  signOutText: {
-    fontSize: 16,
-    color: "#ef4444",
-    fontWeight: "500",
-  },
-})
+const makeStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    content: {
+      padding: 20,
+      gap: 16,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: "700",
+      color: theme.colors.text,
+    },
+    welcome: {
+      fontSize: 16,
+      color: theme.colors.textSecondary,
+    },
+    card: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      padding: 16,
+      gap: 8,
+    },
+    cardTitle: {
+      fontSize: 17,
+      fontWeight: "600",
+      color: theme.colors.text,
+    },
+    cardText: {
+      fontSize: 15,
+      color: theme.colors.textSecondary,
+      lineHeight: 22,
+    },
+    signOut: {
+      paddingVertical: 12,
+      alignItems: "center",
+      marginTop: 8,
+    },
+    signOutText: {
+      fontSize: 16,
+      color: theme.colors.danger,
+      fontWeight: "500",
+    },
+  })
